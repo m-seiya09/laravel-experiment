@@ -1,0 +1,46 @@
+version: '3.9'
+services:
+  app:
+    container_name: laravel_experiment_app
+    build: ./docker/php/
+    volumes:
+      - .:/app
+    # working_dir: app/
+    environment:
+      - APP_DEFAULT_LOCALE=ja_JP
+      - TZ=Asia/Tokyo
+      - DATABASE_HOST=db
+      - DATABASE_USER=root
+      - DATABASE_PASS=root
+      - DATABASE_NAME=original
+  nginx:
+    container_name: laravel_experiment_nginx
+    build:
+      context: .
+      dockerfile: ./docker/nginx/Dockerfile
+    ports:
+    - 80:80
+    volumes:
+    - ./public/:/app/public
+    - ./docker/nginx/default.conf:/etc/nginx/nginx.conf
+    depends_on:
+    - app
+  db:
+    container_name: laravel_experiment_db
+    build:
+      context: .
+      dockerfile: ./docker/db/Dockerfile
+    volumes:
+      - ./docker/db/sqls:/docker-entrypoint-initdb.d
+    environment:
+      - TZ=Asia/Tokyo
+      - MYSQL_ROOT_PASSWORD=root
+    ports:
+    - 3308:3306
+  redis:
+    container_name: laravel_experiment_redis
+    image: redis
+    ports:
+      - 6379:6379
+    volumes:
+      - ./docker/redis:/data
